@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             perspective: 1000px;
-            font-family: sans-serif;
+            font-family: 'Arial', sans-serif;
             color: white;
             touch-action: none;
         }
@@ -45,7 +45,7 @@
             width: 50px; height: 50px;
             background: #ff2e63;
             transform: translate(-50%, -50%) rotate(-45deg);
-            box-shadow: 0 0 20px #ff2e63;
+            box-shadow: 0 0 25px #ff2e63;
         }
         .heart-layer::before, .heart-layer::after {
             content: '';
@@ -57,51 +57,53 @@
         .heart-layer::before { top: -25px; left: 0; }
         .heart-layer::after { left: 25px; top: 0; }
 
+        /* EL MENSAJE PRINCIPAL - SIEMPRE VISIBLE */
         .heart-text {
             position: absolute;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             font-weight: bold;
-            color: white;
+            color: #ffffff;
             text-align: center;
-            width: 120px;
-            text-shadow: 0 0 8px #000;
+            width: 180px;
+            /* El truco del z-index extremo y sombras para legibilidad */
+            text-shadow: 0 0 10px #000, 0 0 20px #000, 0 0 5px #ff2e63;
             transform: translate(-50%, -50%);
-            z-index: 5000;
+            z-index: 99999; 
             pointer-events: none;
         }
 
-        /* --- PALABRAS --- */
+        /* --- PALABRAS ORBITANTES --- */
         .word-item {
             position: absolute;
             white-space: nowrap;
             font-weight: bold;
-            font-size: 0.75rem; /* Tamaño optimizado para pantallas pequeñas */
+            font-size: 0.8rem;
             transform-origin: center center;
             pointer-events: none;
-            /* Forzar hardware acceleration */
             will-change: transform, opacity;
         }
 
         .instruction {
             position: fixed;
             bottom: 15px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.4);
             font-size: 9px;
             text-align: center;
             width: 100%;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
     </style>
 </head>
 <body>
     <div class="stars"></div>
-    <div class="instruction">Desliza para girar el universo de Nata</div>
+    <div class="instruction">Toca para mover el universo de Nata</div>
 
     <div class="scene" id="mainScene">
         <div class="heart-3d" id="heartElement">
             <div class="heart-layer" style="transform: translate(-50%, -50%) rotate(-45deg);"></div>
             <div class="heart-layer" style="transform: translate(-50%, -50%) rotate(-45deg) translateZ(5px); opacity:0.8;"></div>
+            <div class="heart-layer" style="transform: translate(-50%, -50%) rotate(-45deg) translateZ(-5px); opacity:0.8;"></div>
         </div>
 
         <div class="heart-text">Nata,<br>te quiero mucho</div>
@@ -114,20 +116,26 @@
         const heartElement = document.getElementById('heartElement');
         
         const phrases = [
-            "Eres preciosa", "Inspiras belleza", "Bella", "Diosa",
-            "Mágica Nata", "Eres luz", "Dulzura", "Encantadora", 
-            "Eres única", "Increíble Nata", "Valiente", 
-            "Mi tesoro", "Diosa Nata", "Paz", "Mi orgullo",
-            "Te quiero mucho", "Me encantas", "Me gustas", "Te adoro", 
-            "Me haces feliz", "Siempre contigo", "Eres mi sol", "Te amo",
-            "Nata eres magia", "Eres capaz", "Te mereces lo mejor"
+            "Te quiero Nata", "Eres mi mundo", "Mi lugar favorito es contigo", "Eres arte",
+            "Nata preciosa", "Te adoro", "Eres mi felicidad", "Tan bella",
+            "Mi niña hermosa", "Eres magia", "Gracias por existir", "Eres luz",
+            "Mi sol", "Mi tesoro", "Eres única", "Te amo infinito",
+            "Nata, eres mi sueño", "Me encantas", "Siempre en mi mente", "Diosa",
+            "Eres perfecta", "Mi corazón es tuyo", "Te quiero demasiado", "Increíble",
+            "Inspiras amor", "Eres dulzura", "Mi Nata linda", "Eres mi todo",
+            "Te pienso siempre", "Eres mi alegría", "Eres maravillosa", "Nata, te amo",
+            "Tu sonrisa me mata", "Eres mi paz", "Eres mi motivación", "Eres especial",
+            "No hay nadie como tú", "Eres mi vida", "Quédate siempre", "Nata mágica",
+            "Eres mi estrella", "Te quiero ver feliz", "Eres mi orgullo", "Bonita"
         ];
 
-        // --- CÁLCULO PARA PANTALLAS PEQUEÑAS ---
         const screenWidth = window.innerWidth;
-        // El radio será máximo 140px en celulares pequeños y hasta 300px en PC
-        const radius = Math.min(screenWidth * 0.4, 300);
-        const totalWords = screenWidth < 400 ? 50 : 90; // Menos palabras en pantallas mini para evitar caos
+        const screenHeight = window.innerHeight;
+        
+        // Ajustamos el radio para que ocupe gran parte de la pantalla pero sin salirse
+        const radius = Math.min(screenWidth, screenHeight) * 0.45;
+        // Aumentamos la cantidad para que se vea muy lleno
+        const totalWords = screenWidth < 500 ? 150 : 250; 
         
         const words = [];
 
@@ -141,8 +149,12 @@
 
             const el = document.createElement('div');
             el.className = 'word-item';
+            // Repetimos las frases mezcladas
             el.innerText = phrases[i % phrases.length];
-            el.style.color = (i % 2 === 0) ? "#fff" : "#ffb3b3";
+            
+            // Colores variados entre blanco y rosados
+            const colors = ["#ffffff", "#ffb3b3", "#ffccd5", "#fff0f3"];
+            el.style.color = colors[i % colors.length];
             el.style.textShadow = "0 0 5px #ff2e63";
             
             container.appendChild(el);
@@ -154,7 +166,7 @@
         let heartSpin = 0;
 
         function animate() {
-            angleY += 0.003; 
+            angleY += 0.002; // Rotación lenta automática
             heartSpin += 1;
 
             heartElement.style.transform = `rotateY(${heartSpin}deg)`;
@@ -170,23 +182,26 @@
                 let y1 = item.y * cosX - z1 * sinX;
                 let z2 = z1 * cosX + item.y * sinX;
 
-                // Solo traslación: las letras NUNCA giran sobre sí mismas
-                // así nunca se ven de perfil ni al revés.
+                // Aplicamos posición 3D
                 item.el.style.transform = `translate3d(${x1}px, ${y1}px, ${z2}px)`;
                 
-                // Ajustar escala y opacidad según profundidad
+                // Efecto de profundidad
                 const depthScale = (z2 + radius) / (2 * radius);
-                item.el.style.opacity = 0.2 + (depthScale * 0.8);
-                item.el.style.zIndex = Math.round(z2 + 500);
+                item.el.style.opacity = 0.15 + (depthScale * 0.85);
+                
+                // Las palabras de adelante se ven un poco más grandes
+                const sizeScale = 0.7 + (depthScale * 0.5);
+                item.el.style.fontSize = `${sizeScale}rem`;
+                
+                // Z-index para orden de capas
+                item.el.style.zIndex = Math.round(z2 + 1000);
             });
 
             requestAnimationFrame(animate);
         }
 
-        // Interacción táctil suave
-        let startX = 0;
-        let startY = 0;
-
+        // Interacción manual suave para celular
+        let startX = 0, startY = 0;
         document.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
@@ -195,8 +210,8 @@
         document.addEventListener('touchmove', (e) => {
             const deltaX = e.touches[0].clientX - startX;
             const deltaY = e.touches[0].clientY - startY;
-            angleY += deltaX * 0.0001;
-            angleX -= deltaY * 0.0001;
+            angleY += deltaX * 0.00005;
+            angleX -= deltaY * 0.00005;
         }, { passive: false });
 
         animate();
